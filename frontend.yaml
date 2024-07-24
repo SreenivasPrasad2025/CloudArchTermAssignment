@@ -74,8 +74,8 @@ Resources:
           python3 -m pip install --upgrade pip
           sudo mkdir my_project
           cd my_project
-          sudo git clone https://github.com/SreenivasPrasad2025/FinalCloudComputing.git
-          cd FinalCloudComputing/Flask_CloudComputing # Update this path if your repo structure is different
+          sudo git clone https://github.com/SreenivasPrasad2025/CloudArchTermAssignment
+          cd CloudArchTermAssignment/Flask_CA # Update this path if your repo structure is different
           sudo python3 -m venv venv
           source venv/bin/activate
           sudo pip install -r requirements.txt
