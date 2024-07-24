@@ -6,7 +6,7 @@ import requests
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
-AWS_REGION = 'us-east-2'
+AWS_REGION = 'us-east-1'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
