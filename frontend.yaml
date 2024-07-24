@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation stack for EC2, IAM, and other required policies.
+
+Resources:
+  MyFlaskAppSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and port 5000 access from anywhere
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+
+  MyEC2Role:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: AccessS3Policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:*"
+                Resource: "*"
+              - Effect: Allow
+                Action: "logs:*"
+                Resource: "*"
+        - PolicyName: ApiGatewayAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                  - "apigateway:POST" # Add if you need to create or modify API resources
+                  - "apigateway:PUT"
+                Resource:
+                  - "*"
+
+  MyInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref MyEC2Role
+
+  MyFlaskEC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: "t2.micro"
+      SecurityGroupIds:
+        - Ref: MyFlaskAppSG
+      ImageId: "ami-0900fe555666598a2"
+      IamInstanceProfile: !Ref MyInstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install -y git
+          sudo yum install -y python3-pip
+          python3 -m pip install --upgrade pip
+          sudo mkdir my_project
+          cd my_project
+          sudo git clone https://github.com/SreenivasPrasad2025/FinalCloudComputing.git
+          cd FinalCloudComputing/Flask_CloudComputing # Update this path if your repo structure is different
+          sudo python3 -m venv venv
+          source venv/bin/activate
+          sudo pip install -r requirements.txt
+          sudo FLASK_APP=app.py FLASK_RUN_PORT=5000 FLASK_RUN_HOST=0.0.0.0 flask run &
+
+Outputs:
+  WebsiteURL:
+    Description: "URL of the Flask web app"
+    Value: !Sub "http://${MyFlaskEC2Instance.PublicDnsName}:5000"
