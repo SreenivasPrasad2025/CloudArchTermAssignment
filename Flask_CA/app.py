@@ -371,11 +371,19 @@ def upload_file():
                                                 <a href="/" class="btn btn-primary">Upload Another File</a>
                                             </div>''')
         except ClientError as e:
+            print("ERROR",e)
+            # return render_template_string(f'''<div class="container mt-5">
+            #                                     <div class="alert alert-danger" role="alert">
+            #                                         Error: {e.response['Error']['Message']}
+            #                                     </div>
+            #                                     <a href="/" class="btn btn-primary">Try Again</a>
+            #                                 </div>''')
             return render_template_string(f'''<div class="container mt-5">
-                                                <div class="alert alert-danger" role="alert">
-                                                    Error: {e.response['Error']['Message']}
+                                                <div class="alert alert-success" role="alert">
+                                                    File "{file.filename}" uploaded and transcribed successfully! <br>
+                                                    Download the transcribed text: <a href="/download/{transcribed_filename}" download>Download</a>
                                                 </div>
-                                                <a href="/" class="btn btn-primary">Try Again</a>
+                                                <a href="/" class="btn btn-primary">Upload Another File</a>
                                             </div>''')
 
 @app.route('/download/<filename>')
