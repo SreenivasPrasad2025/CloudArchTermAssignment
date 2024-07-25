@@ -63,7 +63,7 @@ Resources:
       InstanceType: "t2.micro"
       SecurityGroupIds:
         - Ref: MyFlaskAppSG
-      ImageId: "ami-0900fe555666598a2"
+      ImageId: "ami-0427090fd1714168b"
       IamInstanceProfile: !Ref MyInstanceProfile
       UserData:
         Fn::Base64: !Sub |
