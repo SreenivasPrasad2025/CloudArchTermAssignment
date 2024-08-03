@@ -138,6 +138,7 @@ def upload_file():
             transcribed_filename = transcribed_key.split('/')[-1]
             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
             s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_key, download_path)
+            
 
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
@@ -147,6 +148,7 @@ def upload_file():
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except ClientError as e:
+            s3_resource.download_file(OUTPUT_BUCKET_NAME, file.filename, "/Downloads")
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-danger" role="alert">
                                                     Error: {e.response['Error']['Message']}
