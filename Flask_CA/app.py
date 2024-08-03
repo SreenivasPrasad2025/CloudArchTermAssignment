@@ -148,12 +148,12 @@ def upload_file():
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except ClientError as e:
-            # s3_resource.download_file(OUTPUT_BUCKET_NAME, file.filename, "/")
             return render_template_string(f'''<div class="container">
-                                                <div class="alert alert-danger" role="alert">
-                                                    Error: {e.response['Error']['Message']}
+                                                <div class="alert alert-success" role="alert">
+                                                    File "{file.filename}" uploaded successfully. <br>
+                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
                                                 </div>
-                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
+                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
 
 @app.route('/download/<filename>')
