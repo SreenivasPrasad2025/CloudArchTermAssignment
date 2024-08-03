@@ -3,6 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 import requests
+import logging
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -15,6 +16,8 @@ api_gateway_client = boto3.client('apigateway', region_name=AWS_REGION)
 BUCKET_NAME = "input1-sreeni1"
 OUTPUT_BUCKET_NAME = "output1-sreeni1"
 
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/')
 def index():
     return render_template_string('''
@@ -23,100 +26,67 @@ def index():
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <title>Enhanced File Upload to S3</title>
+    <title>Simple File Upload</title>
     <style>
-        body, html { 
-            height: 100%;
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            font-family: 'Nunito', sans-serif;
-            background: linear-gradient(#0000FF, #FFFF00, #FFA500);
-            background-size: 400% 400%;
-            animation: AnimationName 2s ease infinite;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-
-        @keyframes AnimationName { 
-            0%{background-position:0% 50%}
-            50%{background-position:100% 50%}
-            100%{background-position:0% 50%}
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-
-        .text-left {
-            text-align: left;
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
         }
-
-        .text-center {
-            text-align: center;
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
         }
-
-        .container { 
-            background: white; 
-            border-radius: 10px; 
-            padding: 20px; 
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
-            max-width: 600px; 
-            margin: 50px auto; 
-            opacity: 0.95;
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
         }
-        .btn-custom { 
-            background-color: #007bff; 
-            color: white; 
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
             border: none;
-        }
-        .btn-custom:hover { 
-            background-color: #0056b3; 
-            color: white; 
-        }
-        .navbar, .footer { 
-            background-color: #007bff; 
-            color: white; 
-        }
-        .footer { 
-            padding: 10px 0; 
-            text-align: center; 
-        }
-        input[type="file"] {
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container">
-        <a class="navbar-brand" href="#" style="color: black; padding-left: 100px ;text-align: 200 px left; font-weight: bold; display: block;">CSCI 5409 - CLOUD TERM ASSIGNMENT </a>
-    </div>
-</nav>
 
 <div class="container">
-    <h1 class="text-center mb-4" style="color: #333;">Upload an Audio File</h1>
+    <h1>Upload files using Python and Flask</h1>
     <form method="post" enctype="multipart/form-data" action="/upload">
         <div class="mb-3">
-            <input type="file" class="form-control" id="file" name="file" required>
+            <input type="file" id="file" name="file" required>
         </div>
-        <button type="submit" class="btn btn-custom btn-block">Upload</button>
+        <button type="submit">Upload File(s)</button>
     </form>
 </div>
 
-<footer class="footer">
-    <div class="container">
-        <p style="color: black; font-weight: bold; display: block;">ABOUT THE AWS PROJECT: </p>
-        <p style="color: black;  display: block;"> <b>1)</b> Upload the audio file </p>
-        <p style="color: black;  display: block;"><b>2)</b> AWS Lambda will fetch the user submitted document from S3 Bucket</p>
-        <p style="color: black;  display: block;"><b>3)</b> Post fetching the document, using AWS Transcribe, it will transcribe the audio file to text </p>
-        <p style="color: black;  display: block;"><b>4)</b> The transcribed text will be stored back in another S3 bucket</p>
-        <p style="color: black;  display: block;"><b>5)</b> The end user will be able to download the final transcribed text!!!</p>
-    </div>
-    <div class="container">
-        <p style="color: black; padding-left: -100 px ; font-weight: bold; display: block;">DONE BY:<br></p>
-        <p style="color: black; padding-left: 0px ;  display: block;"><b>NAME:</b> Venkata Sreenivas Prasad Kasibhatla</p>
-        <p style="color: black; padding-left: 0px ; display: block;"><b>BANNED ID:</b> B00972626</p>
-        <a class="navbar-brand" href="#" style="color: black; padding-left: 40px ;text-align: 200 px left; font-weight: bold; display: block;"> © 2024 File Uploader. All rights reserved.</a>
-    </div>
-</footer>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $('#file').on('change', function() {
         var fileName = $(this).val().split('\\').pop();
@@ -146,11 +116,14 @@ def get_api_url(api_name, stage_name, filename):
 
     try:
         response = requests.post(api_url, json=json_body)
+        logging.debug(f"API Gateway response: {response.text}")
         if response.status_code == 200:
             return response.json()
         else:
+            logging.error(f"API Gateway error: {response.status_code} - {response.text}")
             return f"Error: Received status code {response.status_code}"
     except Exception as e:
+        logging.error(f"Exception in API Gateway call: {e}")
         return f"Error: {str(e)}"
 
 @app.route('/upload', methods=['POST'])
@@ -172,20 +145,20 @@ def upload_file():
             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
             s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_filename, download_path)
 
-            return render_template_string(f'''<div class="container mt-5">
+            return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
-                                                    File "{file.filename}" uploaded and transcribed successfully! <br>
-                                                    Download the transcribed text: <a href="/download/{transcribed_filename}" download>Download</a>
+                                                    File "{file.filename}" uploaded successfully. <br>
+                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
                                                 </div>
-                                                <a href="/" class="btn btn-primary">Upload Another File</a>
+                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except ClientError as e:
-            return render_template_string(f'''<div class="container mt-5">
-                                                <div class="alert alert-success" role="alert">
-                                                    File "{file.filename}" uploaded and transcribed successfully! <br>
-                                                    Download the transcribed text: <a href="/download/{transcribed_filename}" download>Download</a>
+            logging.error(f"ClientError: {e.response['Error']['Message']}")
+            return render_template_string(f'''<div class="container">
+                                                <div class="alert alert-danger" role="alert">
+                                                    Error: {e.response['Error']['Message']}
                                                 </div>
-                                                <a href="/" class="btn btn-primary">Upload Another File</a>
+                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
                                             </div>''')
 
 @app.route('/download/<filename>')

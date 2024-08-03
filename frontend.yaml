@@ -33,8 +33,15 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: "s3:*"
-                Resource: "*"
+                Action: 
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                Resource: 
+                  - "arn:aws:s3:::input1-sreeni1"
+                  - "arn:aws:s3:::input1-sreeni1/*"
+                  - "arn:aws:s3:::output1-sreeni1"
+                  - "arn:aws:s3:::output1-sreeni1/*"
               - Effect: Allow
                 Action: "logs:*"
                 Resource: "*"
@@ -45,7 +52,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "apigateway:GET"
-                  - "apigateway:POST" # Add if you need to create or modify API resources
+                  - "apigateway:POST"
                   - "apigateway:PUT"
                 Resource:
                   - "*"
@@ -75,7 +82,7 @@ Resources:
           sudo mkdir my_project
           cd my_project
           sudo git clone https://github.com/SreenivasPrasad2025/CloudArchTermAssignment
-          cd CloudArchTermAssignment/Flask_CA # Update this path if your repo structure is different
+          cd CloudArchTermAssignment/Flask_CA
           sudo python3 -m venv venv
           source venv/bin/activate
           sudo pip install -r requirements.txt

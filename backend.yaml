@@ -6,11 +6,29 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: input1-sreeni1
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   OutputBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: output1-sreeni1
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -76,7 +94,7 @@ Resources:
               transcribe.start_transcription_job(
                   TranscriptionJobName=job_name,
                   Media={'MediaFileUri': job_uri},
-                  MediaFormat='mp3',  # Update based on your audio format
+                  MediaFormat='mp3',
                   LanguageCode='en-US',
                   OutputBucketName=destination_bucket
               )
@@ -98,7 +116,6 @@ Resources:
                       'statusCode': 500,
                       'body': json.dumps('Transcription failed.')
                   }
-
       Runtime: python3.8
       Timeout: 300
 
