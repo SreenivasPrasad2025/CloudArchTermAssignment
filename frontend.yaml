@@ -85,3 +85,4 @@ Outputs:
   WebsiteURL:
     Description: "URL of the Flask web app"
     Value: !Sub "http://${MyFlaskEC2Instance.PublicDnsName}:5000"
+
