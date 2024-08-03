@@ -181,10 +181,8 @@ def upload_file():
         except Exception as e:
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
-                                                    File "{file.filename}" uploaded successfully. <br>
-                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
+                                                    File uploaded successfully. <br>
                                                 </div>
-                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
 
 
