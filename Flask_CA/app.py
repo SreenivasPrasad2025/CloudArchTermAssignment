@@ -148,7 +148,7 @@ def upload_file():
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except ClientError as e:
-            s3_resource.download_file(OUTPUT_BUCKET_NAME, file.filename, "/Downloads")
+            # s3_resource.download_file(OUTPUT_BUCKET_NAME, file.filename, "/")
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-danger" role="alert">
                                                     Error: {e.response['Error']['Message']}
@@ -158,7 +158,15 @@ def upload_file():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    directory = app.config['UPLOAD_FOLDER']
+    try:
+        return send_from_directory(directory, filename, as_attachment=True)
+    except FileNotFoundError:
+        return render_template_string(f'''<div class="alert alert-danger" role="alert">
+                                          File not found. Please check the filename and try again.
+                                      </div>
+                                      <a href="/" class="btn btn-primary mt-2">Back to Home</a>''')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
