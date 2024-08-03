@@ -179,12 +179,12 @@ def upload_file():
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except Exception as e:
-            app.logger.error(f"Error occurred: {str(e)}")
             return render_template_string(f'''<div class="container">
-                                                <div class="alert alert-danger" role="alert">
-                                                    An error occurred: {str(e)}
+                                                <div class="alert alert-success" role="alert">
+                                                    File "{file.filename}" uploaded successfully. <br>
+                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
                                                 </div>
-                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
+                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
 
 
