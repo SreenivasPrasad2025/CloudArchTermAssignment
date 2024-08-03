@@ -149,22 +149,27 @@ def get_api_url(api_name, stage_name, filename):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
+        app.logger.error("No file part in the request")
         return redirect(request.url)
     file = request.files['file']
     if file.filename == '':
+        app.logger.error("No selected file")
         return redirect(request.url)
     if file:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
+        app.logger.info(f"File saved to {filepath}")
 
         try:
             s3_resource.Bucket(BUCKET_NAME).upload_file(filepath, file.filename)
+            app.logger.info("File uploaded to S3")
             transcribed_key = get_api_url('MyApiGateway', 'prod', file.filename)
+            app.logger.info("API URL fetched")
 
             transcribed_filename = transcribed_key.split('/')[-1]
             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
             s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_key, download_path)
-            
+            app.logger.info("Transcribed file downloaded")
 
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
@@ -173,14 +178,51 @@ def upload_file():
                                                 </div>
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
-        except ClientError as e:
+        except Exception as e:
+            app.logger.error(f"Error occurred: {str(e)}")
             return render_template_string(f'''<div class="container">
-                                                <div class="alert alert-success" role="alert">
-                                                    File "{file.filename}" uploaded successfully. <br>
-                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
+                                                <div class="alert alert-danger" role="alert">
+                                                    An error occurred: {str(e)}
                                                 </div>
-                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
+                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
                                             </div>''')
+
+
+# @app.route('/upload', methods=['POST'])
+# def upload_file():
+#     if 'file' not in request.files:
+#         return redirect(request.url)
+#     file = request.files['file']
+#     if file.filename == '':
+#         return redirect(request.url)
+#     if file:
+#         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+#         file.save(filepath)
+
+#         try:
+#             s3_resource.Bucket(BUCKET_NAME).upload_file(filepath, file.filename)
+#             transcribed_key = get_api_url('MyApiGateway', 'prod', file.filename)
+
+#             transcribed_filename = transcribed_key.split('/')[-1]
+#             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
+#             s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_key, download_path)
+            
+
+#             return render_template_string(f'''<div class="container">
+#                                                 <div class="alert alert-success" role="alert">
+#                                                     File "{file.filename}" uploaded successfully. <br>
+#                                                     <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
+#                                                 </div>
+#                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
+#                                             </div>''')
+#         except ClientError as e:
+#             return render_template_string(f'''<div class="container">
+#                                                 <div class="alert alert-success" role="alert">
+#                                                     File "{file.filename}" uploaded successfully. <br>
+#                                                     <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
+#                                                 </div>
+#                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
+#                                             </div>''')
 
 @app.route('/download/<filename>')
 def download_file(filename):
