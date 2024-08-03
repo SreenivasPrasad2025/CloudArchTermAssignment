@@ -114,7 +114,7 @@ def get_api_url(api_name, stage_name, filename):
     try:
         response = requests.post(api_url, json=json_body)
         if response.status_code == 200:
-            return response.json()
+            return response.json()['transcribed_key']  # assuming the response contains the transcribed file key
         else:
             return f"Error: Received status code {response.status_code}"
     except Exception as e:
@@ -133,11 +133,11 @@ def upload_file():
 
         try:
             s3_resource.Bucket(BUCKET_NAME).upload_file(filepath, file.filename)
-            response = get_api_url('MyApiGateway', 'prod', file.filename)
+            transcribed_key = get_api_url('MyApiGateway', 'prod', file.filename)
 
-            transcribed_filename = 'transcribed_' + file.filename.split('.')[0] + '.json'
+            transcribed_filename = transcribed_key.split('/')[-1]
             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
-            s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_filename, download_path)
+            s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_key, download_path)
 
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
