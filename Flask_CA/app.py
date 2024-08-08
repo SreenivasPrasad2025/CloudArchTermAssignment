@@ -24,6 +24,7 @@ def index():
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Simple File Upload</title>
+                                  <p>For any queries, please drop a mail to vn769140@dal.ca</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -94,32 +95,6 @@ def index():
 </html>
 ''')
 
-# def get_api_url(api_name, stage_name, filename):
-#     response = api_gateway_client.get_rest_apis()
-#     api_id = None
-#     for item in response['items']:
-#         if item['name'] == api_name:
-#             api_id = item['id']
-#             break
-
-#     if not api_id:
-#         raise Exception(f"API Gateway '{api_name}' not found.")
-
-#     api_url = f"https://{api_id}.execute-api.{AWS_REGION}.amazonaws.com/{stage_name}/transcribe"
-#     json_body = {
-#         "source_bucket": BUCKET_NAME,
-#         "source_key": filename
-#     }
-
-#     try:
-#         response = requests.post(api_url, json=json_body)
-#         if response.status_code == 200:
-#             return response.json()['transcribed_key']  # assuming the response contains the transcribed file key
-#         else:
-#             return f"Error: Received status code {response.status_code}"
-#     except Exception as e:
-#         return f"Error: {str(e)}"
-
 def get_api_url(api_name, stage_name, filename):
     try:
         response = api_gateway_client.get_rest_apis()
@@ -185,42 +160,6 @@ def upload_file():
                                                 </div>
                                             </div>''')
 
-
-# @app.route('/upload', methods=['POST'])
-# def upload_file():
-#     if 'file' not in request.files:
-#         return redirect(request.url)
-#     file = request.files['file']
-#     if file.filename == '':
-#         return redirect(request.url)
-#     if file:
-#         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-#         file.save(filepath)
-
-#         try:
-#             s3_resource.Bucket(BUCKET_NAME).upload_file(filepath, file.filename)
-#             transcribed_key = get_api_url('MyApiGateway', 'prod', file.filename)
-
-#             transcribed_filename = transcribed_key.split('/')[-1]
-#             download_path = os.path.join(app.config['UPLOAD_FOLDER'], transcribed_filename)
-#             s3_resource.Bucket(OUTPUT_BUCKET_NAME).download_file(transcribed_key, download_path)
-            
-
-#             return render_template_string(f'''<div class="container">
-#                                                 <div class="alert alert-success" role="alert">
-#                                                     File "{file.filename}" uploaded successfully. <br>
-#                                                     <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
-#                                                 </div>
-#                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
-#                                             </div>''')
-#         except ClientError as e:
-#             return render_template_string(f'''<div class="container">
-#                                                 <div class="alert alert-success" role="alert">
-#                                                     File "{file.filename}" uploaded successfully. <br>
-#                                                     <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
-#                                                 </div>
-#                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
-#                                             </div>''')
 
 @app.route('/download/<filename>')
 def download_file(filename):
