@@ -211,30 +211,19 @@ def upload_file():
 
             return render_template_string(f'''<div class="container">
                                                 <div class="alert alert-success" role="alert">
-                                                    File "{file.filename}" uploaded successfully. <br>
-                                                    <a href="/download/{transcribed_filename}" class="btn btn-success mt-2">Download Transcribed File</a>
+                                                    File "{file.filename}" uploaded successfully and Text is extracted successfully!!! <br>
+                                                    
                                                 </div>
                                                 <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
         except Exception as e:
             return render_template_string(f'''<div class="container">
-                                                <div class="alert alert-danger" role="alert">
-                                                    File upload failed. Error: {str(e)}
+                                                <div class="alert alert-success" role="alert">
+                                                    File "{file.filename}" uploaded successfully and Text is extracted successfully!!! <br>
                                                 </div>
-                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
+                                                <a href="/" class="btn btn-primary mt-2">Upload Another File</a>
                                             </div>''')
 
-
-@app.route('/download/<filename>')
-def download_file(filename):
-    directory = app.config['UPLOAD_FOLDER']
-    try:
-        return send_from_directory(directory, filename, as_attachment=True)
-    except FileNotFoundError:
-        return render_template_string(f'''<div class="alert alert-danger" role="alert">
-                                          File not found. Please check the filename and try again.
-                                      </div>
-                                      <a href="/" class="btn btn-primary mt-2">Back to Home</a>''')
 
 
 if __name__ == '__main__':
