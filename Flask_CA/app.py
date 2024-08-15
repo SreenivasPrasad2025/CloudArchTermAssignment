@@ -2,6 +2,9 @@ from flask import Flask, request, redirect, render_template_string, send_from_di
 import boto3
 from botocore.exceptions import ClientError
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import requests
 
 app = Flask(__name__)
@@ -14,6 +17,7 @@ s3_resource = boto3.resource('s3', region_name=AWS_REGION)
 api_gateway_client = boto3.client('apigateway', region_name=AWS_REGION)
 BUCKET_NAME = "input1-sreeni1"
 OUTPUT_BUCKET_NAME = "output1-sreeni1"
+EMAIL_ADDRESS = 'venkatasreenivas12@gmail.com'  # Your email address
 
 @app.route('/')
 def index():
@@ -24,7 +28,7 @@ def index():
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Simple File Upload</title>
-                                  <p>For any queries, please drop a mail to vn769140@dal.ca</p>
+                                  <p>For any queries, please drop a mail to venkatasreenivas12@gmail.com</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,6 +74,13 @@ def index():
         button:hover {
             background-color: #0056b3;
         }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -81,6 +92,10 @@ def index():
             <input type="file" id="file" name="file" required>
         </div>
         <button type="submit">Upload File(s)</button>
+    </form>
+    <form method="post" action="/send_email">
+        <textarea id="message" name="message" rows="4" placeholder="Write your message here..."></textarea>
+        <button type="submit">Send Email</button>
     </form>
 </div>
 
@@ -95,30 +110,53 @@ def index():
 </html>
 ''')
 
-def get_api_url(api_name, stage_name, filename):
+def send_email(subject, body):
     try:
-        response = api_gateway_client.get_rest_apis()
-        api_id = next((item['id'] for item in response['items'] if item['name'] == api_name), None)
+        sender_email = "venkatasreenivas12@gmail.com"  # Replace with your email address
+        recipient_email = EMAIL_ADDRESS
 
-        if not api_id:
-            raise Exception(f"API Gateway '{api_name}' not found.")
+        # Setup the MIME
+        message = MIMEMultipart()
+        message['From'] = sender_email
+        message['To'] = recipient_email
+        message['Subject'] = subject
 
-        api_url = f"https://{api_id}.execute-api.{AWS_REGION}.amazonaws.com/{stage_name}/transcribe"
-        json_body = {
-            "source_bucket": BUCKET_NAME,
-            "source_key": filename
-        }
+        # Attach the body with the msg instance
+        message.attach(MIMEText(body, 'plain'))
 
-        response = requests.post(api_url, json=json_body)
-        if response.status_code == 200:
-            return response.json()['transcribed_key']  # assuming the response contains the transcribed file key
-        else:
-            error_message = f"Error: Received status code {response.status_code} with message: {response.text}"
-            raise Exception(error_message)
+        # Create SMTP session for sending the mail
+        session = smtplib.SMTP('smtp.gmail.com', 587)  # Use appropriate SMTP server
+        session.starttls()  # Enable security
+        session.login(sender_email, "qboq filb eien tabj")  # Login with your email and password
+        text = message.as_string()
+        session.sendmail(sender_email, recipient_email, text)
+        session.quit()
+
+        print('Mail Sent')
     except Exception as e:
-        error_message = f"Error while calling API Gateway: {str(e)}"
-        print(error_message)  # Consider using logging
-        raise Exception(error_message)  # Reraising the exception to handle it upstream
+        print(f"Failed to send email: {str(e)}")
+
+@app.route('/send_email', methods=['POST'])
+def send_email_route():
+    message = request.form['message']
+    if message:
+        try:
+            send_email("New Message from Flask App", message)
+            return render_template_string('''<div class="container">
+                                                <div class="alert alert-success" role="alert">
+                                                    Your message was sent successfully.
+                                                </div>
+                                                <a href="/" class="btn btn-primary mt-2">Back to Home</a>
+                                            </div>''')
+        except Exception as e:
+            return render_template_string(f'''<div class="container">
+                                                <div class="alert alert-danger" role="alert">
+                                                    Failed to send message. Error: {str(e)}
+                                                </div>
+                                                <a href="/" class="btn btn-primary mt-2">Back to Home</a>
+                                            </div>''')
+    else:
+        return redirect('/')
 
 
 @app.route('/upload', methods=['POST'])
@@ -155,9 +193,10 @@ def upload_file():
                                             </div>''')
         except Exception as e:
             return render_template_string(f'''<div class="container">
-                                                <div class="alert alert-success" role="alert">
-                                                    File uploaded successfully. <br>
+                                                <div class="alert alert-danger" role="alert">
+                                                    File upload failed. Error: {str(e)}
                                                 </div>
+                                                <a href="/" class="btn btn-primary mt-2">Try Again</a>
                                             </div>''')
 
 
