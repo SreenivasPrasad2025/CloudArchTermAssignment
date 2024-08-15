@@ -94,6 +94,7 @@ def index():
         <button type="submit">Upload File(s)</button>
     </form>
     <form method="post" action="/send_email">
+                                  <p>FEEDBACK:</p>
         <textarea id="message" name="message" rows="4" placeholder="Write your message here..."></textarea>
         <button type="submit">Send Email</button>
     </form>
