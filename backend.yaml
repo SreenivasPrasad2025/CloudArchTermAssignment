@@ -6,11 +6,19 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: input1-sreeni1
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   OutputBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: output1-sreeni1
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -42,7 +50,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: "*"
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/MyTranscribeFunction:*
               - Effect: Allow
                 Action:
                   - transcribe:StartTranscriptionJob
@@ -167,6 +175,13 @@ Resources:
     Properties:
       RestApiId: !Ref ApiGatewayRestApi
       StageName: prod
+      StageDescription:
+        MethodSettings:
+          - DataTraceEnabled: true
+            HttpMethod: "*"
+            ResourcePath: "/*"
+            LoggingLevel: INFO
+            MetricsEnabled: true
 
   LambdaPermissionForApiGateway:
     Type: AWS::Lambda::Permission
