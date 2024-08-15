@@ -94,7 +94,6 @@ def index():
         <button type="submit">Upload File(s)</button>
     </form>
     <form method="post" action="/send_email">
-                                  <p>FEEDBACK:</p>
         <textarea id="message" name="message" rows="4" placeholder="Write your message here..."></textarea>
         <button type="submit">Send Email</button>
     </form>
@@ -110,6 +109,31 @@ def index():
 </body>
 </html>
 ''')
+
+def get_api_url(api_name, stage_name, filename):
+    try:
+        response = api_gateway_client.get_rest_apis()
+        api_id = next((item['id'] for item in response['items'] if item['name'] == api_name), None)
+
+        if not api_id:
+            raise Exception(f"API Gateway '{api_name}' not found.")
+
+        api_url = f"https://{api_id}.execute-api.{AWS_REGION}.amazonaws.com/{stage_name}/transcribe"
+        json_body = {
+            "source_bucket": BUCKET_NAME,
+            "source_key": filename
+        }
+
+        response = requests.post(api_url, json=json_body)
+        if response.status_code == 200:
+            return response.json()['transcribed_key']  # assuming the response contains the transcribed file key
+        else:
+            error_message = f"Error: Received status code {response.status_code} with message: {response.text}"
+            raise Exception(error_message)
+    except Exception as e:
+        error_message = f"Error while calling API Gateway: {str(e)}"
+        print(error_message)  # Consider using logging
+        raise Exception(error_message)  # Reraising the exception to handle it upstream
 
 def send_email(subject, body):
     try:
@@ -214,4 +238,4 @@ def download_file(filename):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5080, debug=True)
